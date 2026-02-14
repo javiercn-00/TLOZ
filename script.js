@@ -5,10 +5,38 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
+// ===========================
+// RESIZE RESPONSIVE NES
+// ===========================
+
+const BASE_WIDTH = 256;
+const BASE_HEIGHT = 240;
+
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+
+  // resolución interna fija tipo NES
+  canvas.width = BASE_WIDTH;
+  canvas.height = BASE_HEIGHT;
+
+  // escala proporcional
+  const scale = Math.min(
+    window.innerWidth / BASE_WIDTH,
+    window.innerHeight / BASE_HEIGHT
+  );
+
+  canvas.style.width = BASE_WIDTH * scale + "px";
+  canvas.style.height = BASE_HEIGHT * scale + "px";
+
+  // centrar pantalla
+  canvas.style.position = "absolute";
+  canvas.style.left = "50%";
+  canvas.style.top = "50%";
+  canvas.style.transform = "translate(-50%, -50%)";
 }
+
+window.addEventListener("resize", resize);
+resize();
+
 window.addEventListener("resize", resize);
 resize();
 
