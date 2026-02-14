@@ -9,30 +9,46 @@ ctx.imageSmoothingEnabled = false;
 // RESIZE RESPONSIVE NES
 // ===========================
 
-const BASE_WIDTH = 256;
-const BASE_HEIGHT = 240;
+// ===========================
+// RESPONSIVE SYSTEM PRO
+// ===========================
+
+const BASE_WIDTH = 960;
+const BASE_HEIGHT = 540;
+
+let scale = 1;
+let orientation = "landscape";
+
+function detectOrientation() {
+  if (window.innerHeight > window.innerWidth) {
+    orientation = "portrait";
+  } else {
+    orientation = "landscape";
+  }
+}
 
 function resize() {
+  detectOrientation();
 
-  // resolución interna fija tipo NES
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  const scaleX = w / BASE_WIDTH;
+  const scaleY = h / BASE_HEIGHT;
+
+  scale = Math.min(scaleX, scaleY);
+
   canvas.width = BASE_WIDTH;
   canvas.height = BASE_HEIGHT;
-
-  // escala proporcional
-  const scale = Math.min(
-    window.innerWidth / BASE_WIDTH,
-    window.innerHeight / BASE_HEIGHT
-  );
 
   canvas.style.width = BASE_WIDTH * scale + "px";
   canvas.style.height = BASE_HEIGHT * scale + "px";
 
-  // centrar pantalla
   canvas.style.position = "absolute";
-  canvas.style.left = "50%";
-  canvas.style.top = "50%";
-  canvas.style.transform = "translate(-50%, -50%)";
+  canvas.style.left = (w - BASE_WIDTH * scale) / 2 + "px";
+  canvas.style.top = (h - BASE_HEIGHT * scale) / 2 + "px";
 }
+
 
 window.addEventListener("resize", resize);
 resize();
@@ -410,12 +426,30 @@ const touchButtons = {
 };
 
 function layoutTouchButtons() {
-  const baseY = canvas.height - 150;
-  touchButtons.left.x = 45;  touchButtons.left.y = baseY;
-  touchButtons.right.x = 195; touchButtons.right.y = baseY;
-  touchButtons.up.x = 120;    touchButtons.up.y = baseY - 90;
-  touchButtons.down.x = 120;  touchButtons.down.y = baseY;
+  const isMobile = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+
+  let buttonSize = isMobile ? 100 : 72;
+
+  touchButtons.left.size = buttonSize;
+  touchButtons.right.size = buttonSize;
+  touchButtons.up.size = buttonSize;
+  touchButtons.down.size = buttonSize;
+
+  const baseY = BASE_HEIGHT - 120;
+
+  touchButtons.left.x = 60;
+  touchButtons.left.y = baseY;
+
+  touchButtons.right.x = 220;
+  touchButtons.right.y = baseY;
+
+  touchButtons.up.x = 140;
+  touchButtons.up.y = baseY - 100;
+
+  touchButtons.down.x = 140;
+  touchButtons.down.y = baseY;
 }
+
 layoutTouchButtons();
 window.addEventListener("resize", layoutTouchButtons);
 

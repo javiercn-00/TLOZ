@@ -7,11 +7,16 @@
 
 /* ===== BODY ===== */
 body {
+    margin: 0;
     background: #021a0f;
     overflow: hidden;
     font-family: monospace;
-    cursor: crosshair;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
+
 
 /* ===== CANVAS ===== */
 canvas {
