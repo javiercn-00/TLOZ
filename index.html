@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Legend of Valentine</title>
+    <title>The Legend of Valentine - Responsive</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            overflow: hidden; /* Evita barras de desplazamiento */
-            display: flex;
-            justify-content: center; /* Corregido (llevaba guion bajo) */
-            align-items: center;
-            height: 100vh;
+            margin: 0; padding: 0; background-color: #000;
+            height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; touch-action: none;
         }
-        canvas {
-            display: block;
-            /* Phaser manejará el tamaño, esto es solo para asegurar limpieza */
-        }
+        canvas { display: block; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 </head>
 <body>
 
@@ -28,6 +23,482 @@
         <source src="zelda8bit.mp3" type="audio/mpeg">
     </audio>
 
-    <script src="game.js"></script>
+    <script>
+    // ==========================================
+    // 1. DATA (SPRITES EN BITS)
+    // ==========================================
+    const FONT = {
+      A:["010","101","111","101","101"], B:["110","101","110","101","110"], C:["011","100","100","100","011"],
+      D:["110","101","101","101","110"], E:["111","110","100","110","111"], F:["111","110","100","110","100"],
+      G:["011","100","101","101","011"], H:["101","101","111","101","101"], I:["111","010","010","010","111"],
+      J:["111","001","001","101","010"], K:["101","110","100","110","101"], L:["100","100","100","100","111"],
+      M:["101","111","111","101","101"], N:["101","111","111","111","101"], O:["010","101","101","101","010"],
+      P:["110","101","110","100","100"], Q:["010","101","101","111","011"], R:["110","101","110","110","101"],
+      S:["011","110","010","011","110"], T:["111","010","010","010","010"], U:["101","101","101","101","111"],
+      V:["101","101","101","101","010"], W:["101","101","111","111","101"], X:["101","101","010","101","101"],
+      Y:["101","101","010","010","010"], Z:["111","001","010","100","111"],
+      "0":["111","101","101","101","111"], "1":["010","110","010","010","111"], "2":["111","001","111","100","111"],
+      "3":["111","001","111","001","111"], "4":["101","101","111","001","001"], "5":["111","100","111","001","111"],
+      "6":["111","100","111","101","111"], "7":["111","001","010","010","010"], "8":["111","101","111","101","111"],
+      "9":["111","101","111","001","111"], " ":["0","0","0","0","0"], ".":["0","0","0","0","1"],
+      "?":["111","001","011","000","010"], "!":["1","1","1","0","1"], ":":["0","1","0","1","0"],
+      "¿":["010","000","110","001","111"], ",":["0","0","0","1","1"]
+    };
+
+    const P = { 0:null, 1:"#2ecc71", 2:"#f1c27d", 3:"#000000", 4:"#8b4513", 5:"#145214", 6:"#ffffff", 7:"#ff0000", 8:"#ff69b4" };
+    const LINK_IDLE = [[0,0,3,3,3,0,0],[0,3,1,1,1,3,0],[3,1,2,2,2,1,3],[3,1,2,2,2,1,3],[0,4,0,4,0,4,0],[0,4,0,4,0,4,0]];
+    const LINK_WALK = [[0,0,3,3,3,0,0],[0,3,1,1,1,3,0],[3,1,2,2,2,1,3],[3,1,2,2,2,1,3],[0,4,4,0,4,4,0],[0,4,0,4,0,4,0]];
+    const LINK_VICTORY = [[0,0,6,0,0,0,0],[0,0,6,0,0,0,0],[0,0,3,3,3,0,0],[0,3,1,1,1,3,0],[3,1,2,2,2,1,3],[0,4,0,4,0,4,0],[0,4,0,4,0,4,0]];
+
+    const C = { 0:null, 1:"#8b4513", 2:"#f8e16c", 3:"#000000" };
+    const CHEST_CLOSED = [[3,3,3,3,3,3],[3,1,1,1,1,3],[3,1,2,2,1,3],[3,1,1,1,1,3],[3,3,3,3,3,3]];
+    const CHEST_OPEN = [[3,3,3,3,3,3],[3,0,0,0,0,3],[3,1,2,2,1,3],[3,1,1,1,1,3],[3,3,3,3,3,3]];
+
+    const EP = { 0:null, 1:"#8b0000", 2:"#ffcc00", 3:"#aaffcc" };
+    const BAT1 = [[0,1,0,1,0],[1,1,1,1,1],[1,2,1,2,1],[1,1,1,1,1]];
+    const BAT2 = [[1,0,0,0,1],[1,1,1,1,1],[0,2,1,2,0],[0,1,1,1,0]];
+    const SLIME1 = [[0,3,3,3,0],[3,2,2,2,3],[3,2,1,2,3],[0,3,3,3,0]];
+    const SLIME2 = [[0,3,3,3,0],[3,2,2,2,3],[3,1,2,1,3],[0,3,3,3,0]];
+    const FLAME1 = [[0,0,3,0,0],[0,3,2,3,0],[3,2,2,2,3],[0,3,2,3,0],[0,0,3,0,0]];
+    const FLAME2 = [[0,3,0,3,0],[3,2,3,2,3],[0,3,2,3,0],[0,0,3,0,0],[0,0,3,0,0]];
+
+    // ==========================================
+    // 2. ESCENA PRINCIPAL
+    // ==========================================
+    class MainScene extends Phaser.Scene {
+        constructor() { super({ key: 'MainScene' }); }
+
+        create() {
+            this.input.addPointer(3); 
+            this.gameState = "start"; 
+            this.countdown = 3;
+            this.titleAngle = 0;
+            this.chestAsked = false;
+            this.lastFrameTime = 0;
+            this.victoryTimer = 0;
+            this.heartPulse = 0;
+            this.ui = {}; 
+
+            // --- TEXTURAS ---
+            if (!this.textures.exists('link_idle')) {
+                this.generateTextureFromMatrix('link_idle', LINK_IDLE, P, 12);
+                this.generateTextureFromMatrix('link_walk', LINK_WALK, P, 12);
+                this.generateTextureFromMatrix('link_victory', LINK_VICTORY, P, 12);
+                this.generateTextureFromMatrix('chest_closed', CHEST_CLOSED, C, 10);
+                this.generateTextureFromMatrix('chest_open', CHEST_OPEN, C, 10);
+                this.generateTextureFromMatrix('bat1', BAT1, EP, 10);
+                this.generateTextureFromMatrix('bat2', BAT2, EP, 10);
+                this.generateTextureFromMatrix('slime1', SLIME1, EP, 10);
+                this.generateTextureFromMatrix('slime2', SLIME2, EP, 10);
+                this.generateTextureFromMatrix('flame1', FLAME1, EP, 10);
+                this.generateTextureFromMatrix('flame2', FLAME2, EP, 10);
+            }
+
+            // Audio
+            this.musicElement = document.getElementById('bgmusic');
+            if(this.musicElement) this.musicElement.volume = 0.3;
+
+            // FONDO ADAPTATIVO
+            this.createForestBackground();
+
+            // --- OBJETOS RESPONSIVE ---
+            // Usamos this.scale.width y height para colocarlos relativos al borde
+            const w = this.scale.width;
+            const h = this.scale.height;
+
+            // Cofre pegado a la esquina inferior derecha (con margen)
+            this.chest = this.physics.add.sprite(w - 150, h - 220, 'chest_closed');
+            this.chest.setImmovable(true);
+            
+            // Link empieza un poco a la izquierda y arriba
+            this.link = this.physics.add.sprite(w * 0.3, h * 0.4, 'link_idle');
+            this.link.setCollideWorldBounds(true);
+            this.link.body.setSize(this.link.width * 0.8, this.link.height * 0.8);
+            
+            this.enemiesGroup = this.physics.add.group();
+
+            this.uiGraphics = this.add.graphics();
+            this.uiGraphics.setDepth(100);
+
+            this.cursors = this.input.keyboard.createCursorKeys();
+            
+            this.createVirtualControls();
+            
+            this.input.on('pointerdown', (pointer) => this.handleGlobalClick(pointer));
+            this.setGameVisibility();
+        }
+
+        update(time, delta) {
+            const dt = delta / 1000; 
+            this.uiGraphics.clear(); 
+            this.setGameVisibility();
+
+            const cx = this.scale.width / 2;
+            const cy = this.scale.height / 2;
+
+            switch(this.gameState) {
+                case "start":
+                    this.draw3DTitle(dt);
+                    this.drawCenteredText(["HAZ CLICK PARA EMPEZAR", "ESTA AVENTURA"], cy - 40, "#aaffcc", 3, 14);
+                    this.drawTouchControls();
+                    break;
+                case "countdown":
+                    this.updateCountdown(dt);
+                    this.drawTouchControls();
+                    break;
+                case "play":
+                    this.updateLinkMovement(dt);
+                    this.checkChestCollision();
+                    this.drawCenteredText(["MUEVETE CON FLECHAS"], 30, "#aaffcc", 2, 10);
+                    this.drawCenteredText(["VE AL COFRE"], 60, "#aaffcc", 2, 10);
+                    this.drawTouchControls(); 
+                    break;
+                case "question":
+                    this.link.setVelocity(0,0);
+                    this.drawCenteredText(["ABS...", "¿QUIERES SER MI VALENTINE?"], cy - 140, "#aaffcc", 3, 14);
+                    this.drawYesNoButtons();
+                    this.drawTouchControls();
+                    break;
+                case "battle":
+                    this.link.setVelocity(0,0); 
+                    this.link.setTexture('link_idle');
+                    this.updateEnemies(time);
+                    this.drawCenteredText(["DERROTA A LOS ENEMIGOS", "DA CLICK EN CADA UNO"], 30, "#aaffcc", 2, 10);
+                    this.drawTouchControls();
+                    break;
+                case "victoryReward":
+                    this.updateVictory(dt);
+                    break;
+                case "heart":
+                    this.updateHeartScene(dt);
+                    break;
+            }
+        }
+
+        setGameVisibility() {
+            let showLink = false; let showChest = false; let showEnemies = false;
+            if (this.gameState === "play") { showLink = true; showChest = true; }
+            else if (this.gameState === "question") { showLink = true; showChest = true; }
+            else if (this.gameState === "battle") { showLink = true; showChest = false; showEnemies = true; }
+            else if (this.gameState === "victoryReward") { showLink = true; showChest = false; }
+            this.link.setVisible(showLink); this.chest.setVisible(showChest); this.enemiesGroup.setVisible(showEnemies);
+        }
+
+        handleGlobalClick(pointer) {
+            const mx = pointer.x; const my = pointer.y;
+            // Zona segura para controles (esquina inferior izquierda)
+            if (mx < 250 && my > this.scale.height - 200) return;
+
+            if (this.gameState === "start") {
+                if (this.musicElement) this.musicElement.play().catch(e => {});
+                this.gameState = "countdown"; this.countdown = 3; return;
+            }
+            if (this.gameState === "question") {
+                if (this.pointInRect(mx, my, this.ui.yes)) this.triggerYes();
+                if (this.pointInRect(mx, my, this.ui.no)) this.triggerNo();
+            }
+            if (this.gameState === "battle") {
+                const enemies = this.enemiesGroup.getChildren();
+                for(let i = enemies.length - 1; i >= 0; i--) {
+                    const en = enemies[i];
+                    if (en.visible && en.getBounds().contains(mx, my)) {
+                        en.destroy();
+                        if (this.enemiesGroup.countActive() === 0) this.startVictory("WOW, ERES MUY VALIENTE", "DE RECOMPENSA TEN MI CORAZON :3");
+                        return; 
+                    }
+                }
+            }
+            if (this.gameState === "heart") {
+                 if (this.ui.restart && this.pointInRect(mx, my, this.ui.restart)) this.scene.restart();
+            }
+        }
+
+        updateCountdown(dt) {
+            this.countdown -= dt * 0.6; 
+            let num = Math.ceil(this.countdown); if (num < 1) num = 1;
+            this.drawCenteredText([String(num)], this.scale.height/2 - 30, "#aaffcc", 6, 20);
+            if (this.countdown <= 0) { 
+                this.gameState = "play"; 
+                // Reiniciar posiciones relativas
+                this.link.setPosition(this.scale.width * 0.3, this.scale.height * 0.4);
+                this.chest.setTexture('chest_closed'); this.chestAsked = false;
+            }
+        }
+
+        checkChestCollision() {
+            if (this.chestAsked) return;
+            if (this.physics.overlap(this.link, this.chest)) {
+                this.chest.setTexture('chest_open'); this.chestAsked = true; this.gameState = "question";
+            }
+        }
+
+        triggerYes() { this.startVictory("TE AMO", "GRACIAS POR HACER MI VALENTINE MUY ESPECIAL :3"); }
+        triggerNo() { this.gameState = "battle"; this.spawnEnemies(); }
+
+        spawnEnemies() {
+            const types = [{k1:'bat1', k2:'bat2'}, {k1:'slime1', k2:'slime2'}, {k1:'flame1', k2:'flame2'}];
+            this.enemiesGroup.clear(true, true);
+            for(let i=0; i<7; i++) {
+                const type = Phaser.Utils.Array.GetRandom(types);
+                // Enemigos dentro de los márgenes seguros
+                const x = Phaser.Math.Between(50, this.scale.width - 50);
+                const y = Phaser.Math.Between(100, this.scale.height - 150);
+                const enemy = this.enemiesGroup.create(x, y, type.k1);
+                enemy.setData('typeInfo', type); enemy.setData('animTimer', 0);
+                enemy.setVelocity((Math.random()<0.5?-1:1)*Phaser.Math.Between(40,120), (Math.random()<0.5?-1:1)*Phaser.Math.Between(40,120));
+                enemy.setBounce(1); enemy.setCollideWorldBounds(true); 
+            }
+        }
+
+        startVictory(line1, line2) {
+            this.gameState = "victoryReward"; this.victoryLines = [line1, line2]; this.victoryTimer = 0;
+            this.link.setTexture('link_victory'); 
+            this.link.setPosition(this.scale.width/2, this.scale.height/2 - 80);
+        }
+
+        updateVictory(dt) {
+            this.victoryTimer += dt;
+            const r = 18 + Math.sin(this.victoryTimer * 8) * 4;
+            this.uiGraphics.fillStyle(0xffff99, 0.65);
+            this.uiGraphics.fillCircle(this.scale.width/2, this.scale.height/2 - 110, r*5);
+            this.drawCenteredText(this.victoryLines, Math.floor(this.scale.height/2 + 20), "#aaffcc", 3, 12);
+            if (this.victoryTimer > 4) { 
+                this.gameState = "heart";
+                this.heartLines = this.victoryLines[0].includes("TE AMO") 
+                    ? ["TE AMO", "GRACIAS POR HACER MI VALENTINE", "MUY ESPECIAL :3"]
+                    : ["WOW, ERES MUY VALIENTE", "DE RECOMPENSA TEN MI CORAZON :3"];
+            }
+        }
+
+        updateHeartScene(dt) {
+            this.heartPulse += dt * 3;
+            const scale = 1 + Math.sin(this.heartPulse) * 0.18;
+            const cx = this.scale.width/2; const cy = this.scale.height/2 - 60; const s = scale * 18;
+            this.uiGraphics.fillStyle(0xff69b4, 0.25); this.uiGraphics.fillRect(cx - 6*s, cy - 6*s, 12*s, 12*s);
+            this.uiGraphics.fillStyle(0xff0000, 1);
+            const heartMatrix = [[0,1,0,1,0],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0],[0,0,1,0,0]];
+            for(let r=0; r<5; r++){ for(let c=0; c<5; c++){ 
+                if(heartMatrix[r][c] === 1) this.uiGraphics.fillRect(cx + (c-2)*s, cy + (r-2)*s, s, s); 
+            }}
+            this.drawCenteredText(this.heartLines, Math.floor(this.scale.height/2 + 80), "#aaffcc", 3, 14);
+            this.drawRestartButton();
+        }
+
+        updateLinkMovement(dt) {
+            const speed = 220;
+            let vx = 0; let vy = 0;
+            if (this.cursors.left.isDown || this.touchKeys.left) vx = -1;
+            else if (this.cursors.right.isDown || this.touchKeys.right) vx = 1;
+            if (this.cursors.up.isDown || this.touchKeys.up) vy = -1;
+            else if (this.cursors.down.isDown || this.touchKeys.down) vy = 1;
+
+            if (vx !== 0 || vy !== 0) {
+                const mag = Math.sqrt(vx*vx + vy*vy); vx /= mag; vy /= mag;
+                this.lastFrameTime += dt;
+                if (this.lastFrameTime > 0.2) {
+                    this.link.setTexture(this.link.texture.key === 'link_idle' ? 'link_walk' : 'link_idle');
+                    this.lastFrameTime = 0;
+                }
+            } else { this.link.setTexture('link_idle'); }
+            this.link.setVelocity(vx * speed, vy * speed);
+        }
+
+        updateEnemies(time) {
+            this.enemiesGroup.children.iterate((en) => {
+                if(!en) return;
+                let timer = en.getData('animTimer') + 1;
+                if (timer > 15) {
+                    const keys = en.getData('typeInfo');
+                    en.setTexture(en.texture.key === keys.k1 ? keys.k2 : keys.k1);
+                    timer = 0;
+                }
+                en.setData('animTimer', timer);
+            });
+        }
+
+        // FONDOS RESPONSIVE (Llenan la pantalla sea cual sea)
+        createForestBackground() {
+            // Borramos textura vieja si existe (al reiniciar)
+            if (this.textures.exists('forest_trees')) { this.textures.remove('forest_trees'); }
+            
+            const graphics = this.add.graphics();
+            graphics.fillGradientStyle(0x021a0f, 0x021a0f, 0x063d24, 0x063d24, 1);
+            graphics.fillRect(0, 0, this.scale.width, this.scale.height);
+            graphics.fillStyle(0xccffcc, 1); 
+            // Luna relativa
+            graphics.fillCircle(this.scale.width - 100, 100, 40); 
+            
+            for(let i=0; i<90; i++) {
+                graphics.fillStyle(0xaaffcc, 0.5);
+                graphics.fillRect(Phaser.Math.Between(0, this.scale.width), Phaser.Math.Between(0, this.scale.height), Phaser.Math.Between(1, 3), Phaser.Math.Between(1, 3));
+            }
+            
+            const treeGraphics = this.make.graphics({x: 0, y: 0, add: false});
+            const drawTree = (x, y, s) => {
+                const TILE = 12; const trunkW = 3*TILE*s; const trunkH = 6*TILE*s; const crownR = 4*TILE*s;
+                treeGraphics.fillStyle(0x0b5d2a); treeGraphics.fillRect(x, y, trunkW, trunkH);
+                treeGraphics.fillStyle(0x0e7a35); treeGraphics.fillRect(x - crownR/2, y - crownR/2, trunkW + crownR, crownR);
+                treeGraphics.fillRect(x - crownR/3, y - crownR, trunkW + (2*crownR)/3, crownR);
+                treeGraphics.fillRect(x, y - (3*crownR)/2, trunkW, crownR);
+            };
+            
+            // Arboles relativos al ancho
+            for (let x = 0; x < this.scale.width + 100; x += 140) drawTree(x, this.scale.height - 200, 0.7);
+            
+            treeGraphics.generateTexture('forest_trees', this.scale.width, this.scale.height);
+            this.add.image(this.scale.width/2, this.scale.height/2, 'forest_trees');
+        }
+
+        drawPixelText(text, x, y, colorStr, scale) {
+            text = String(text).toUpperCase();
+            const color = parseInt(colorStr.replace("#", "0x"), 16);
+            this.uiGraphics.fillStyle(color, 1);
+            let cursorX = x;
+            for (const ch of text) {
+                const glyph = FONT[ch] || FONT[" "];
+                for (let r = 0; r < glyph.length; r++) { for (let c = 0; c < glyph[r].length; c++) {
+                    if (glyph[r][c] === "1") this.uiGraphics.fillRect(cursorX + c * scale, y + r * scale, scale, scale);
+                }}
+                cursorX += 3 * scale + 1 * scale;
+            }
+        }
+
+        drawCenteredText(lines, yStart, color, scale, lineGap) {
+            const arr = Array.isArray(lines) ? lines : [lines];
+            arr.forEach((line, i) => {
+                const linePx = (line.length * (3 * scale + 1 * scale)) - (1 * scale);
+                const x = Math.floor(this.scale.width / 2 - linePx / 2);
+                const y = yStart + i * (5 * scale + lineGap);
+                this.drawPixelText(line, x, y, color, scale);
+            });
+        }
+
+        draw3DTitle(dt) {
+            this.titleAngle += dt * 1.1;
+            const centerX = this.scale.width / 2; const centerY = this.scale.height / 2 - 120;
+            const text = "THE LEGEND OF ???";
+            const floatY = Math.sin(this.titleAngle * 2) * 10;
+            const textW = (text.length * (3*8 + 8)) - 8;
+            const startX = centerX - textW/2; const startY = centerY + floatY;
+            for (let i = 8; i > 0; i--) {
+                this.uiGraphics.fillStyle(0x3c280a, 0.4 + i * 0.05);
+                this.drawPixelText(text, startX + i*3, startY + i*3, "#3b2a0a", 8);
+            }
+            const goldPulse = Math.floor(200 + Math.sin(this.titleAngle * 3) * 30);
+            const hex = "#" + ((1 << 24) + (goldPulse << 16) + ((goldPulse - 40) << 8)).toString(16).slice(1);
+            this.drawPixelText(text, startX, startY, hex, 8);
+        }
+
+        drawYesNoButtons() {
+            const midX = this.scale.width / 2; const baseY = this.scale.height / 2 + 80;
+            this.ui = this.ui || {};
+            this.ui.yes = { x: midX - 190, y: baseY, w: 170, h: 60 };
+            this.ui.no =  { x: midX + 20, y: baseY, w: 170, h: 60 };
+            const drawBtn = (btn, label) => {
+                this.uiGraphics.fillStyle(0x0b5d2a); this.uiGraphics.fillRect(btn.x, btn.y, btn.w, btn.h);
+                this.uiGraphics.lineStyle(3, 0xaaffcc); this.uiGraphics.strokeRect(btn.x, btn.y, btn.w, btn.h);
+                const scale = 3; const linePx = (label.length * (3 * scale + scale)) - scale;
+                this.drawPixelText(label, btn.x + btn.w/2 - linePx/2, btn.y + 18, "#aaffcc", scale);
+            };
+            drawBtn(this.ui.yes, "YES"); drawBtn(this.ui.no, "NO");
+        }
+
+        drawRestartButton() {
+            const w = 260, h = 70; const x = this.scale.width/2 - w/2; const y = this.scale.height - 120;
+            this.ui = this.ui || {}; 
+            this.ui.restart = { x, y, w, h };
+            this.uiGraphics.fillStyle(0x0b5d2a); this.uiGraphics.fillRect(x, y, w, h);
+            this.uiGraphics.lineStyle(4, 0xaaffcc); this.uiGraphics.strokeRect(x, y, w, h);
+            const label = "VOLVER A COMENZAR"; const scale = 3; const linePx = (label.length * (3 * scale + scale)) - scale;
+            this.drawPixelText(label, x + w/2 - linePx/2, y + 20, "#aaffcc", scale);
+        }
+
+        // --- CONTROLES RELATIVOS Y AJUSTADOS ---
+        createVirtualControls() {
+            this.touchKeys = { left: false, right: false, up: false, down: false };
+            this.touchZones = {};
+            const btnSize = 60; 
+            const hitSize = 90;
+            const gap = 65; 
+
+            const addZone = (dir, x, y) => {
+                const zone = this.add.zone(x + btnSize/2, y + btnSize/2, hitSize, hitSize).setInteractive();
+                zone.on('pointerdown', () => this.touchKeys[dir] = true);
+                zone.on('pointerover', (pointer) => { if (pointer.isDown) this.touchKeys[dir] = true; });
+                zone.on('pointerup', () => this.touchKeys[dir] = false);
+                zone.on('pointerout', () => this.touchKeys[dir] = false);
+                return {x, y, s: btnSize}; 
+            };
+            
+            // Posición relativa al fondo de la pantalla
+            const baseY = this.scale.height - 150; 
+            const baseX = 40;
+
+            this.touchZones.left = addZone('left', baseX, baseY);
+            this.touchZones.right = addZone('right', baseX + gap*2, baseY);
+            this.touchZones.up = addZone('up', baseX + gap, baseY - gap);
+            this.touchZones.down = addZone('down', baseX + gap, baseY);
+        }
+
+        drawTouchControls() {
+            const drawNESBtn = (zone, dir) => {
+                const {x, y, s} = zone;
+                const pressed = this.touchKeys[dir];
+                this.uiGraphics.fillStyle(0x000000); this.uiGraphics.fillRect(x-5, y-5, s+10, s+10);
+                this.uiGraphics.fillStyle(pressed ? 0x0a5f2a : 0x0e7a35);
+                const inset = pressed ? 3 : 0;
+                this.uiGraphics.fillRect(x+inset, y+inset, s-inset, s-inset);
+                this.uiGraphics.lineStyle(3, 0xaaffcc); this.uiGraphics.strokeRect(x+3+inset, y+3+inset, s-6-inset, s-6-inset);
+                this.uiGraphics.fillStyle(0xffffff);
+                const cx = x + s/2 + inset; const cy = y + s/2 + inset; const p = 8;
+                if (dir === "left") this.uiGraphics.fillRect(cx-p*2, cy-p/2, p*2, p);
+                if (dir === "right") this.uiGraphics.fillRect(cx, cy-p/2, p*2, p);
+                if (dir === "up") this.uiGraphics.fillRect(cx-p/2, cy-p*2, p, p*2);
+                if (dir === "down") this.uiGraphics.fillRect(cx-p/2, cy, p, p*2);
+            };
+            drawNESBtn(this.touchZones.left, "left"); drawNESBtn(this.touchZones.right, "right");
+            drawNESBtn(this.touchZones.up, "up"); drawNESBtn(this.touchZones.down, "down");
+        }
+
+        pointInRect(px, py, rect) { return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h; }
+
+        generateTextureFromMatrix(key, matrix, palette, pixelSize) {
+            const h = matrix.length; const w = matrix[0].length;
+            const canvas = document.createElement('canvas');
+            canvas.width = w * pixelSize; canvas.height = h * pixelSize;
+            const ctx = canvas.getContext('2d');
+            for (let r = 0; r < h; r++) { for (let c = 0; c < w; c++) {
+                const val = matrix[r][c];
+                if (val !== 0 && val !== null) { ctx.fillStyle = palette[val]; ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize); }
+            }}
+            this.textures.addCanvas(key, canvas);
+        }
+    }
+
+    // ===============================================
+    // DETECCIÓN INTELIGENTE DE RESOLUCIÓN (Responsive)
+    // ===============================================
+    const isPortrait = window.innerHeight > window.innerWidth;
+    
+    const config = {
+        type: Phaser.AUTO,
+        // Si es vertical, invertimos las dimensiones base para que la escala funcione
+        width: isPortrait ? 540 : 960,
+        height: isPortrait ? 960 : 540,
+        backgroundColor: '#021a0f',
+        parent: document.body,
+        scale: {
+            mode: Phaser.Scale.FIT, // Ajustar sin estirar
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        physics: {
+            default: 'arcade',
+            arcade: { debug: false, gravity: { y: 0 } }
+        },
+        scene: MainScene
+    };
+
+    const game = new Phaser.Game(config);
+    </script>
 </body>
 </html>
