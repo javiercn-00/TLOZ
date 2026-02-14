@@ -1,19 +1,33 @@
-
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
-<script src="script.js"></script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ABS Adventure</title>
-
-<link rel="stylesheet" href="style.css">
-
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
-<script defer src="script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Legend of Valentine</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden; /* Evita barras de desplazamiento */
+            display: flex;
+            justify-content: center; /* Corregido (llevaba guion bajo) */
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            /* Phaser manejará el tamaño, esto es solo para asegurar limpieza */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 </head>
-
 <body>
+
+    <audio id="bgmusic" loop>
+        <source src="zelda8bit.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="game.js"></script>
 </body>
 </html>

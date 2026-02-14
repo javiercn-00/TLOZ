@@ -1,39 +1,28 @@
-/* ===== RESET ===== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* ===== BODY ===== */
+/* 1. Reseteo básico para quitar márgenes del navegador */
 body {
     margin: 0;
-    background: #021a0f;
-    overflow: hidden;
-    font-family: monospace;
+    padding: 0;
+    background-color: #000000; /* Fondo negro estilo NES */
+    
+    /* 2. Ocupar toda la pantalla */
+    width: 100vw;
+    height: 100vh;
+    
+    /* 3. IMPORTANTE: Evitar barras de desplazamiento (scrollbars) */
+    overflow: hidden; 
+    
+    /* 4. Centrado Perfecto usando Flexbox */
+    /* Esto centra el canvas de Phaser horizontal y verticalmente */
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    
+    /* Evita comportamientos táctiles por defecto en móviles (zoom, scroll elástico) */
+    touch-action: none; 
 }
 
-
-/* ===== CANVAS ===== */
+/* 5. Asegurar que el canvas se comporte como bloque */
 canvas {
     display: block;
-    image-rendering: pixelated;
-}
-
-/* ===== EFECTO CRT SUAVE (retro vibe opcional) ===== */
-body::after {
-    content: "";
-    pointer-events: none;
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-        rgba(0,0,0,0.08) 0px,
-        rgba(0,0,0,0.08) 2px,
-        transparent 2px,
-        transparent 4px
-    );
+    /* No pongas width ni height aquí, Phaser lo calculará matemáticamente */
 }
